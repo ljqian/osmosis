@@ -29,6 +29,10 @@ subprojects {
 	repositories {
 		// Standard Maven repository.
 		mavenCentral()
+
+		maven {
+            url "https://maven.oracle.com/"
+        }
 	}
 }
 
