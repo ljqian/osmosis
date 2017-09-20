@@ -113,7 +113,7 @@ CREATE TABLE nodes (
     CONSTRAINT ensure_nodestags_json CHECK (tags IS JSON)
 );
 
-CREATE OR REPLACE TYPE OSM_NODEID_ARRAY AS VARRAY(1048576) OF number(19);
+CREATE OR REPLACE TYPE OSM_ID_ARRAY AS VARRAY(1048576) OF number(19);
 /
 
 -- Create a table for ways.
@@ -126,7 +126,7 @@ CREATE TABLE ways (
     linestring sdo_geometry,
     bbox sdo_geometry,
     tags varchar2 (32767) CONSTRAINT ensure_waystags_json CHECK (tags IS JSON),
-    nodes OSM_NODEID_ARRAY
+    nodes OSM_ID_ARRAY
 );
 
 
@@ -162,21 +162,6 @@ CREATE TABLE relation_members (
 -- Configure the schema version.
 INSERT INTO schema_info (version) VALUES (6);
 
-
--- Add primary keys to tables.
-ALTER TABLE schema_info ADD CONSTRAINT pk_schema_info PRIMARY KEY (version);
-
-ALTER TABLE users ADD CONSTRAINT pk_users PRIMARY KEY (id);
-
-ALTER TABLE nodes ADD CONSTRAINT pk_nodes PRIMARY KEY (id);
-
-ALTER TABLE ways ADD CONSTRAINT pk_ways PRIMARY KEY (id);
-
-ALTER TABLE way_nodes ADD CONSTRAINT pk_way_nodes PRIMARY KEY (way_id, sequence_id);
-
-ALTER TABLE relations ADD CONSTRAINT pk_relations PRIMARY KEY (id);
-
-ALTER TABLE relation_members ADD CONSTRAINT pk_relation_members PRIMARY KEY (relation_id, sequence_id);
 
 commit;
 /
