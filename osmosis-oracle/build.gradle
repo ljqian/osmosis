@@ -5,9 +5,9 @@ configurations {
 
 dependencies {
     compile project(':osmosis-core')
-    compile files('libs/ojdbc8-12.2.0.1.jar')
-    compile files('libs/orai18n-12.2.0.1.jar')
-    compile files('libs/ucp-12.2.0.1.jar')
+//    compile files('libs/ojdbc8-12.2.0.1.jar')
+//    compile files('libs/orai18n-12.2.0.1.jar')
+//    compile files('libs/ucp-12.2.0.1.jar')
 
 //    compile group: 'com.oracle.jdbc', name: 'ojdbc8', version: dependencyVersionOracleJdbc
 //    compile group: 'com.oracle.jdbc', name: 'ucp', version: dependencyVersionOracleJdbc
