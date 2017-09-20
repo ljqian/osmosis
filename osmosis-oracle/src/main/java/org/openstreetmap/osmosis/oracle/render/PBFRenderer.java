@@ -104,6 +104,10 @@ public class PBFRenderer {
             public void close() {
                 System.out.println("Release!");
 
+                //release memory
+                nodeMap.clear();
+                nodeMap = null;
+
                 tc.saveToFile(new File("D:\\bigdata-bigmap\\osm-data\\boston_massachusetts.png"));
             }
 
