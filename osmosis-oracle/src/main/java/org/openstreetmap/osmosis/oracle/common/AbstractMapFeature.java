@@ -3,7 +3,9 @@ package org.openstreetmap.osmosis.oracle.common;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
+/*
+ * @author lj.qian
+ */
 public abstract class AbstractMapFeature implements MapFeature {
     private FeatureCommonData commonData = new FeatureCommonData();
 

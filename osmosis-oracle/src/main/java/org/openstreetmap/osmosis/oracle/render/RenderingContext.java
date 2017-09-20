@@ -2,7 +2,9 @@ package org.openstreetmap.osmosis.oracle.render;
 
 
 import java.awt.*;
-
+/*
+ * @author lj.qian
+ */
 public interface RenderingContext {
 
     public StyleSheet getStyleSheet();

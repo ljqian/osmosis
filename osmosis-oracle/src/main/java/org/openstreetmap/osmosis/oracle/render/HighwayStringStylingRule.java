@@ -5,6 +5,9 @@ import org.openstreetmap.osmosis.oracle.common.MapFeature;
 
 import java.util.List;
 
+/*
+ * @author lj.qian
+ */
 public class HighwayStringStylingRule implements StylingRule{
 
     @Override

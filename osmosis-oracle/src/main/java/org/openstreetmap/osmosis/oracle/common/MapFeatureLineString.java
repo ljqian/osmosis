@@ -1,8 +1,11 @@
+/*
+ * @author lj.qian
+ */
 package org.openstreetmap.osmosis.oracle.common;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
+
+import java.util.*;
 
 public class MapFeatureLineString extends AbstractMapFeature {
     private FeatureCommonData commonData = new FeatureCommonData();
@@ -53,6 +56,10 @@ public class MapFeatureLineString extends AbstractMapFeature {
 
     public List<MapPoint> getPoints(){
         return this.points;
+    }
+
+    public Map<String, String> getTags() {
+        return commonData.getTags();
     }
 
     public static void main(String[] args){

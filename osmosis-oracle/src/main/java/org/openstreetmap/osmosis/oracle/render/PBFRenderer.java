@@ -13,6 +13,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,39 +21,29 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class PBFRenderer {
-
     private static Logger LOG = Logger.getLogger(PBFRenderer.class.getName());
-
-    public static void main(String... args) {
-
-        //suitable for testing NorthEast region data
-        OOWTile tile = new OOWTile(14,5);
-        tile.print();
-
-
-        PBFRenderer sample = new PBFRenderer(tile);
-        sample.readFile();
-    }
 
     private static int DEFAULT_INIT_CAPACITY = 5000000;
 
     private HashMap<Long, MapPoint> nodeMap = new HashMap<>(DEFAULT_INIT_CAPACITY);
     private TileRenderingContext tc;
 
-    public PBFRenderer(OOWTile tile){
+    public PBFRenderer(OOWTile tile, File file){
         tc = new TileRenderingContext(tile);
         tc.initialize();
 
         tc.setLineStyle(Color.white, 1.0f);
+
+        readFile(tc.getStyleSheet(), file);
     }
 
-    public void readFile() {
-
-        File file = new File("D:\\bigdata-bigmap\\osm-data\\us-northeast-latest.osm.pbf"); // the input file
+    public void readFile(StyleSheet sheet, File file) {
+        StyleSheet highwayStyleSheet = sheet;
 
         Sink sinkImplementation = new Sink() {
             long nodeCount = 0;
             long wayCount = 0;
+            long wayRenderCount = 0;
             long relationCount = 0;
             long wayNodeLookupCount = 0;
             long missingWayNodeCount = 0;
@@ -73,6 +64,8 @@ public class PBFRenderer {
                     wayCount++;
 
                     Way way = (Way) entity;
+                    Collection<Tag> tagSet = way.getTags();
+
                     long wayId = way.getId();
                     List<WayNode> nodes = way.getWayNodes();
                     double[] xys = new double[nodes.size()*2];
@@ -91,8 +84,11 @@ public class PBFRenderer {
                     }
 
                     //for image read-ability, we are going to show only  10% of the streets ...
-                    if(wayCount % 10 ==0)
+                    boolean shouldRender =highwayStyleSheet.applicable(tagSet);
+                    if(shouldRender /* && wayCount % 2 ==0*/){
                         tc.renderLineString(xys);
+                        wayRenderCount++;
+                    }
                 }
                 else if (entity instanceof Relation) {
                     //do something with the relation
@@ -104,17 +100,23 @@ public class PBFRenderer {
             public void close() {
                 System.out.println("Release!");
 
+                System.out.println("Final nodeMap size: "+ nodeMap.size());
+
                 //release memory
                 nodeMap.clear();
                 nodeMap = null;
 
-                tc.saveToFile(new File("D:\\bigdata-bigmap\\osm-data\\boston_massachusetts.png"));
+                String parentFolder = file.getParent();
+                String saveFileName = parentFolder+File.separator+"output.png";
+
+                tc.saveToFile(new File(saveFileName));
+                System.out.println("Image saved: "+ saveFileName);
             }
 
             @Override
             public void complete() {
                 System.out.println("TOTALS: nodes=" + nodeCount + ", ways=" + wayCount + ", relations=" + relationCount +
-                        " wayNodeLookups="+ wayNodeLookupCount + ", missingWayNodes="+ missingWayNodeCount);
+                        " wayNodeLookups="+ wayNodeLookupCount + ", missingWayNodes="+ missingWayNodeCount+", rendered way="+wayRenderCount);
             }
 
             @Override
@@ -169,9 +171,39 @@ public class PBFRenderer {
         }
 
         long t2 = System.currentTimeMillis();
-        System.out.println("nodeMap size: "+ nodeMap.size());
+
         System.out.println("Time spent: "+ (t2-t1)+" ms.");
 
     }
 
+    public static void main(String... args) {
+        int tileX = 14, tileY = 5; //for boston area
+        String fileName = "/Users/lqian/oracle/data/boston_massachusetts.osm.pbf";
+        File file = null;
+
+        for(String arg : args){
+            if(arg.startsWith("x=")){
+                tileX = Integer.valueOf(arg.substring(2));
+                System.out.println("Input tile index x="+ tileX);
+            }
+
+            if(arg.startsWith("y=")){
+                tileY = Integer.valueOf(arg.substring(2));
+                System.out.println("Input tile index y="+ tileY);
+            }
+
+            if(arg.startsWith("file=")){
+                fileName = arg.substring(5);
+                System.out.println("Input file="+ fileName);
+            }
+        }
+
+        //suitable for testing NorthEast region data
+        OOWTile tile = new OOWTile(tileX,tileY);
+        tile.print();
+
+        file = new File(fileName);
+
+        PBFRenderer sample = new PBFRenderer(tile, file);
+    }
 }

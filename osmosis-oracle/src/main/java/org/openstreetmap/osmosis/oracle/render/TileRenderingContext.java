@@ -1,3 +1,6 @@
+/*
+ * @author lj.qian
+ */
 package org.openstreetmap.osmosis.oracle.render;
 
 import javax.imageio.ImageIO;
@@ -200,6 +203,13 @@ public class TileRenderingContext implements RenderingContext, Serializable {
             throw new IllegalStateException("No canvas image found or rendering context not initialized.");
 
         ImageFileUtil.saveImageToFile(pngFile, canvas, "PNG");
+    }
+
+    public byte[] saveToBuffer(){
+        if(!this.initialized || this.graphics==null)
+            throw new IllegalStateException("No canvas image found or rendering context not initialized.");
+
+        return ImageFileUtil.saveImageToBytes(canvas, "PNG");
     }
 
     public void setLineStyle(Color strokeColor, float strokeWidth){

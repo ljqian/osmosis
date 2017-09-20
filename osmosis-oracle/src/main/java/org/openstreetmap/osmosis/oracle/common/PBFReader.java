@@ -1,3 +1,4 @@
+
 package org.openstreetmap.osmosis.oracle.common;
 
 

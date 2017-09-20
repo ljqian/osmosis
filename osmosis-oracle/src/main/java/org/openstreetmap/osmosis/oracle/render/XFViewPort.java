@@ -19,7 +19,6 @@ import java.io.Serializable;
  *
  * @author lj.qian
  * @version 1.0
- * @internal
  */
 public class XFViewPort implements Serializable, Cloneable
 {
@@ -149,9 +148,6 @@ public class XFViewPort implements Serializable, Cloneable
 
     /**
      * set the rendering area or viewport on the device;
-     * @param  (xlow,ylow) and (xhi,yhi) specifie the view port
-     * 		in terms of device coordinates (pixels).
-     *		The lower-left corner of the device is the origin.
      */
     public void   setDeviceView(int xlow, int ylow, int xhi, int yhi)
     {

@@ -7,7 +7,7 @@ import java.awt.geom.Rectangle2D;
  * web mercator tiling scheme instances. Also provides various convenient
  * methods for conversion between Web Mercator projection and tile coordinates.
  *
- * @author lqian
+ * @author lj.qian
  */
 public class WorldMercatorUtils {
     public static final Rectangle2D.Double UNIVERSE_COVERAGE_LL = new Rectangle2D.Double(-180.0, -85.05112877980659, 360, 85.05112877980659*2 );

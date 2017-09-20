@@ -12,8 +12,19 @@ dependencies {
 //    compile group: 'com.oracle.jdbc', name: 'ojdbc8', version: dependencyVersionOracleJdbc
 //    compile group: 'com.oracle.jdbc', name: 'ucp', version: dependencyVersionOracleJdbc
 
-    testCompile project(':osmosis-dataset')
+    compile project(':osmosis-dataset')
     testCompile project(':osmosis-testutil')
-    testCompile project(':osmosis-xml')
-    testCompile project(':osmosis-pbf')
+    compile project(':osmosis-xml')
+    compile project(':osmosis-pbf')
+}
+
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'PBF Rendering',
+            'Implementation-Version': version,
+            'Main-Class': 'org.openstreetmap.osmosis.oracle.render.PBFRenderer'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }

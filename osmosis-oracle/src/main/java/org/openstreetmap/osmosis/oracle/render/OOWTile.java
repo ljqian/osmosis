@@ -2,7 +2,15 @@ package org.openstreetmap.osmosis.oracle.render;
 
 import java.awt.geom.Rectangle2D;
 import java.io.Serializable;
-
+/*
+ * @author lj.qian
+ */
+/**
+ * This class defines how the TARGET_AREA is divided into square tiles to be processed/rendered
+ * separately.
+ *
+ * The TARGET_AREA is a rectangle in longitude/latitude.
+ */
 public class OOWTile implements Serializable {
 
     //This is the area we are trying to render collectively into a wall poster
@@ -15,17 +23,19 @@ public class OOWTile implements Serializable {
     //Dot/Pixel Per Inch
     public final static int DPI = 300;
 
+    //We are trying to draw everything within the TARGET_AREA to a poster image with these dimensions.
     public final static int POSTER_WIDTH_INCH = 96*2; //must be in same aspect ratio as target area
     public final static int POSTER_HEIGHT_INCH = 48*2;
 
+    //This is the size of a tile (in pixel)
     public final static int TILE_SIZE = (int) ( POSTER_WIDTH_INCH * DPI / NUM_TILES_X );
 
-    public final static Rectangle2D.Double PIXEL_AREA = new Rectangle2D.Double(0, 0, POSTER_WIDTH_INCH*DPI, POSTER_HEIGHT_INCH*DPI);
-
-    private int tileX, tileY; //tile index
+    private int tileX, tileY; //tile index along x and y. Starts 0 from left and bottom.
 
     //world MBR of this tile (in lat/lon)
     private Rectangle2D.Double mbrLonLat = null;
+
+    //mercator projected MBR of this tile (in meters).
     private Rectangle2D.Double mbrMercator = null;
 
     //the resolution
@@ -47,9 +57,6 @@ public class OOWTile implements Serializable {
 
         metersPerPixel = widthMeters / (POSTER_WIDTH_INCH * DPI) ;
 
-        //System.out.println("====> Width in meters = "+ widthMeters+",  metersPerPixel = "+metersPerPixel);
-
-
         mbrLonLat = new Rectangle2D.Double(TARGET_AREA.getMinX()+x*DEGREE_PER_TILE,
                                        TARGET_AREA.getMinY()+y*DEGREE_PER_TILE,
                                         DEGREE_PER_TILE,
@@ -59,7 +66,6 @@ public class OOWTile implements Serializable {
         double[] meterUR = WorldMercatorUtils.lonLatToMeters(mbrLonLat.getMaxX(), mbrLonLat.getMaxY());
 
         mbrMercator = new Rectangle2D.Double(meterLL[0], meterLL[1], meterUR[0]-meterLL[0], meterUR[1]-meterLL[1]);
-
 
     }
 

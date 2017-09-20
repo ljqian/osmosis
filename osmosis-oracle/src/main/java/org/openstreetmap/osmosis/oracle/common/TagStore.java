@@ -1,3 +1,6 @@
+/*
+ * @author lj.qian
+ */
 package org.openstreetmap.osmosis.oracle.common;
 
 import java.util.List;
