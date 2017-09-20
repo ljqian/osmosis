@@ -4,10 +4,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class ImageFileUtil {
+public class ImageFileUtil implements Serializable{
     private static Logger log = Logger.getLogger(ImageFileUtil.class.getName());
 
     public static boolean saveImageToFile(File dest, BufferedImage input, String format){

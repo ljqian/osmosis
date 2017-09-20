@@ -25,4 +25,12 @@ public class MapPoint {
     public int getSrid (){
         return 4326;
     }
+
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
 }

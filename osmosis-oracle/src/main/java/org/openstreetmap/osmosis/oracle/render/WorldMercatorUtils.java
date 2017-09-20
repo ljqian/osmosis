@@ -1,4 +1,4 @@
-package org.openstreetmap.osmosis.oracle.tile;
+package org.openstreetmap.osmosis.oracle.render;
 
 import java.awt.geom.Rectangle2D;
 
