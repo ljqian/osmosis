@@ -8,6 +8,7 @@ import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.GeneralPath;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.logging.Level;
@@ -223,26 +224,65 @@ public class TileRenderingContext implements RenderingContext, Serializable {
      * @param strokeWidth
      * @param xys
      */
-    public void renderLineString(Color strokeColor, float strokeWidth, double[] xys){
+    public boolean renderLineString(Color strokeColor, float strokeWidth, double[] xys, Rectangle2D.Double bbox){
         graphics.setColor(strokeColor);
         graphics.setStroke(new BasicStroke(strokeWidth));
 
-        renderLineString(xys);
+        return renderLineString(xys, bbox);
     }
 
-    public void renderLineString(double[] xys){
+    /**
+     * Renders a linestring whose coordinates are defined in the double array (coordinates stored as
+     * x0,y0,x1,y1, ... xn,yn).
+     *
+     * @param xys  The coordinates of the linestring
+     * @param bbox The bounding box of current rendering context (clip window).
+     * @return true if the linestring is actually rendered to the canvas, false otherwise.
+     */
+    public boolean renderLineString(double[] xys, Rectangle2D.Double bbox){
+        if(xys==null || xys.length<4)
+            return false;
+
         int i=0;
+        double xMin, yMin ,
+               xMax, yMax ;
+
         double x= xys[i];
         double y = xys[i+1];
+
         GeneralPath linestring = new GeneralPath(GeneralPath.WIND_EVEN_ODD, xys.length/2);
         linestring.moveTo(x,y);
+
+        xMin = x;
+        yMin = y;
+        xMax = x;
+        yMax = y;
+
         for(i = 1; i < xys.length/2; i++){
             x = xys[i*2];
             y = xys[i*2+1];
             linestring.lineTo(x,y);
+
+            if(xMin > x)
+                xMin = x;
+            if(yMin > y)
+                yMin = y;
+            if(xMax < x)
+                xMax = x;
+            if(yMax < y)
+                yMax = y;
+
         }
 
-        graphics.draw(linestring);
+        Rectangle2D.Double myBBox = new Rectangle2D.Double(xMin, yMin, xMax - xMin, yMax - yMin);
+
+        //TODO: when the linestring overlaps tile bbox, clip the linestring and render (instead of skipping it).
+        if(bbox.contains(myBBox)) {
+            graphics.draw(linestring);
+            return true;
+        }
+        else
+            return false; //did not render
     }
 
     public static void main(String[] args){
