@@ -13,6 +13,9 @@ import java.util.Collection;
 public class TagJson {
 
     public static String getJson(Collection<Tag> tags){
+        if(tags==null || tags.isEmpty())
+            return null;
+
         StringBuilder sb = new StringBuilder();
         sb.append("{");
 
