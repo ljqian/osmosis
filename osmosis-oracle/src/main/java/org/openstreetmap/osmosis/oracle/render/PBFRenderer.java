@@ -73,6 +73,7 @@ public class PBFRenderer {
                     for(WayNode wn : nodes){
                         long nid = wn.getNodeId();
                         MapPoint pt = nodeMap.get(nid);
+                        wayNodeLookupCount ++;
                         if(pt==null){
                             missingWayNodeCount ++;
                         } else{
@@ -83,11 +84,12 @@ public class PBFRenderer {
                         i++;
                     }
 
-                    //for image read-ability, we are going to show only  10% of the streets ...
+                    // determine if the feature is worth rendering ...
                     boolean shouldRender =highwayStyleSheet.applicable(tagSet);
+
                     if(shouldRender /* && wayCount % 2 ==0*/){
-                        tc.renderLineString(xys);
-                        wayRenderCount++;
+                        if( tc.renderLineString(xys, tc.getTile().getMbrMercator()) )
+                            wayRenderCount++;
                     }
                 }
                 else if (entity instanceof Relation) {

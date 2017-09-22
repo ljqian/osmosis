@@ -54,7 +54,7 @@ public class SimpleRenderer implements Serializable {
                 //      a lon,lat point to meters in Mercator as required by our renderer.
                 double[] xys = new double[0];
 
-                tc.renderLineString(xys);
+                tc.renderLineString(xys, tile.getMbrMercator());
             }
         }
 
