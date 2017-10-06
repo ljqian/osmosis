@@ -3,11 +3,9 @@
  */
 package org.openstreetmap.osmosis.oracle.common;
 
-import java.util.HashMap;
-
 public class MapFeaturePoint extends AbstractMapFeature {
 
-    private FeatureCommonData commonData = new FeatureCommonData();
+    //private FeatureCommonData commonData = new FeatureCommonData();
 
     //The list of points that make up this linestring feature.
     private MapPoint point;

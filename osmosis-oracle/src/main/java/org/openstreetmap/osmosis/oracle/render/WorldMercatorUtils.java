@@ -91,6 +91,22 @@ public class WorldMercatorUtils {
         my = my * ORIGIN_SHIFT / 180.0;
         return new double[]{mx, my};
     }
+    
+    /**
+     * Converts given array of lon/lat in 8307 to XY in 3857 (in-place)
+     * @param lon
+     * @param lat
+     * @return
+     */
+    public static final void lonLatToMeters(double [] ordinates) {
+    	for (int ordCount = 0; ordCount < ordinates.length; ordCount+=2) {
+    		double mx = ordinates[ordCount] * ORIGIN_SHIFT / 180.0;
+            double my = Math.log( Math.tan((90 + ordinates[ordCount+1]) * Math.PI / 360.0 )) / (Math.PI / 180.0) ;
+            my = my * ORIGIN_SHIFT / 180.0;
+            ordinates[ordCount]=mx;
+            ordinates[ordCount+1]=my;
+    	}
+    }
 
     /**
      * Converts 3857 XY to pixel coordinates in a given zoom level of

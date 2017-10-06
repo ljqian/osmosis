@@ -3,8 +3,6 @@
  */
 package org.openstreetmap.osmosis.oracle.common;
 
-import org.openstreetmap.osmosis.core.domain.v0_6.Tag;
-
 import java.util.*;
 
 public class MapFeatureLineString extends AbstractMapFeature {
@@ -63,7 +61,7 @@ public class MapFeatureLineString extends AbstractMapFeature {
     }
 
     public static void main(String[] args){
-        MapFeatureLineString line = new MapFeatureLineString(12341);
+        new MapFeatureLineString(12341);
 
 
     }

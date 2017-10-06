@@ -5,7 +5,6 @@ import org.openstreetmap.osmosis.core.domain.v0_6.*;
 import org.openstreetmap.osmosis.core.task.v0_6.RunnableSource;
 import org.openstreetmap.osmosis.core.task.v0_6.Sink;
 import org.openstreetmap.osmosis.oracle.common.MapPoint;
-import org.openstreetmap.osmosis.oracle.common.PBFReader;
 import org.openstreetmap.osmosis.xml.common.CompressionMethod;
 import org.openstreetmap.osmosis.xml.v0_6.XmlReader;
 
@@ -27,12 +26,14 @@ public class PBFRenderer {
 
     private HashMap<Long, MapPoint> nodeMap = new HashMap<>(DEFAULT_INIT_CAPACITY);
     private TileRenderingContext tc;
+    private final String outputFileName;
 
     public PBFRenderer(OOWTile tile, File file){
+    	outputFileName = "x_"+tile.getTileX()+"_y_"+tile.getTileY();
         tc = new TileRenderingContext(tile);
         tc.initialize();
 
-        tc.setLineStyle(Color.white, 1.0f);
+        tc.setLineStyle(Color.black, 1.0f);
 
         readFile(tc.getStyleSheet(), file);
     }
@@ -66,7 +67,7 @@ public class PBFRenderer {
                     Way way = (Way) entity;
                     Collection<Tag> tagSet = way.getTags();
 
-                    long wayId = way.getId();
+                    //long wayId = way.getId();
                     List<WayNode> nodes = way.getWayNodes();
                     double[] xys = new double[nodes.size()*2];
                     int i=0;
@@ -109,7 +110,7 @@ public class PBFRenderer {
                 nodeMap = null;
 
                 String parentFolder = file.getParent();
-                String saveFileName = parentFolder+File.separator+"output.png";
+                String saveFileName = parentFolder+File.separator+outputFileName+".png";
 
                 tc.saveToFile(new File(saveFileName));
                 System.out.println("Image saved: "+ saveFileName);
@@ -206,6 +207,6 @@ public class PBFRenderer {
 
         file = new File(fileName);
 
-        PBFRenderer sample = new PBFRenderer(tile, file);
+        new PBFRenderer(tile, file);
     }
 }

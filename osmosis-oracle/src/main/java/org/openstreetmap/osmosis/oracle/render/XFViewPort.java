@@ -22,7 +22,9 @@ import java.io.Serializable;
  */
 public class XFViewPort implements Serializable, Cloneable
 {
-    boolean  strict = false;  // strictly honor user bbox?
+    private static final long serialVersionUID = 1L;
+
+	boolean  strict = false;  // strictly honor user bbox?
 
     //// section 1:  information about the canvas real-estate
 
@@ -226,7 +228,7 @@ public class XFViewPort implements Serializable, Cloneable
     public void   setupXForm2()
     {
         double x_inc = (dview_xh-dview_xl)*scale_data_x;
-        double y_inc = dview_yh-dview_yl, yf;
+        double y_inc = dview_yh-dview_yl;
 
         x_scalef = (can_xh-can_xl-2)/x_inc;  //2 is for minimum gap
         y_scalef = (can_yh-can_yl-2)/y_inc;

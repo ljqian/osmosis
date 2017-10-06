@@ -12,20 +12,21 @@ import java.io.Serializable;
  * The TARGET_AREA is a rectangle in longitude/latitude.
  */
 public class OOWTile implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    //This is the area we are trying to render collectively into a wall poster
+	//This is the area we are trying to render collectively into a wall poster
     public final static Rectangle2D.Double TARGET_AREA = new Rectangle2D.Double(-130,19, 64, 32);
 
-    public final static int NUM_TILES_X = 16;  // the target area will be covered by this many tiles horizontally
-    public final static int NUM_TILES_Y = 8;  // and this many tiles vertically;  must be in same aspect ratio as target area
+    public final static int NUM_TILES_X = 64;  // the target area will be covered by this many tiles horizontally
+    public final static int NUM_TILES_Y = 32;  // and this many tiles vertically;  must be in same aspect ratio as target area
 
     public final static double DEGREE_PER_TILE = TARGET_AREA.getWidth() / NUM_TILES_X;
     //Dot/Pixel Per Inch
     public final static int DPI = 300;
 
     //We are trying to draw everything within the TARGET_AREA to a poster image with these dimensions.
-    public final static int POSTER_WIDTH_INCH = 96*2; //must be in same aspect ratio as target area
-    public final static int POSTER_HEIGHT_INCH = 48*2;
+    public final static int POSTER_WIDTH_INCH = 72*2;// 96*2; //must be in same aspect ratio as target area
+    public final static int POSTER_HEIGHT_INCH = 36*2;// 48*2;
 
     //This is the size of a tile (in pixel)
     public final static int TILE_SIZE = (int) ( POSTER_WIDTH_INCH * DPI / NUM_TILES_X );
@@ -46,6 +47,9 @@ public class OOWTile implements Serializable {
      *
      * Note that we follow TMS tile scheme so the tile (0,0) is at the lower left corner of the target area.
      */
+    public OOWTile(double minX, double minY) {
+    	this((int)((minX-TARGET_AREA.getMinX())/DEGREE_PER_TILE), (int)((minY-TARGET_AREA.getMinY())/DEGREE_PER_TILE));
+    }
     public OOWTile(int x, int y){
         this.tileX = x;
         this.tileY = y;
@@ -75,6 +79,14 @@ public class OOWTile implements Serializable {
 
     public int getTileY() {
         return tileY;
+    }
+    
+    public int getFullImageXPosition() {
+    	return tileX*TILE_SIZE;
+    }
+    
+    public int getFullImageYPosition() {
+    	return (NUM_TILES_Y - 1 - tileY)*TILE_SIZE;
     }
 
     public Rectangle2D.Double getMbrLonLat() {

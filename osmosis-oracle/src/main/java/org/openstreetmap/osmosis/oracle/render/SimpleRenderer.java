@@ -1,9 +1,11 @@
 package org.openstreetmap.osmosis.oracle.render;
 
-import org.openstreetmap.osmosis.oracle.common.MapFeatureLineString;
+import oracle.spatial.spark.vector.index.SpatialPartition;
+import oracle.spatial.spark.vector.oow17.writable.WayWritable;
 
 import java.awt.*;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -14,56 +16,84 @@ import java.util.Map;
  * Created by lqian on 9/20/17.
  */
 public class SimpleRenderer implements Serializable {
-    public SimpleRenderer(){
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+	public SimpleRenderer(){
 
     }
+    
+    public ImageInfo render(SpatialPartition partition, Iterator<WayWritable> records) {
+		System.out.println("Rendering " + Arrays.toString(partition.getMbr()));
+		double []mbr = partition.getMbr();
+		OOWTile tile = new OOWTile(mbr[0], mbr[1]);
 
-    /**
-     * Returns the rendered contents in a byte array.
-     * The byte array represents a PNG-formatted, compressed image.
-     * @param tileX tile index on the X (longitude) axis
-     * @param tileY tile index on the Y (latitude) axis
-     * @param recordIterator Some iterator to get feature records
-     * @return a compressed, PNG formatted image
-     */
-    public static byte[] render(int tileX, int tileY, Iterator recordIterator){
-        //creates a specific OOWTile that covers one portion of the TARGET AREA.
-        OOWTile tile = new OOWTile(tileX, tileY);
-
-        //Creates a new renderer. It will allocate a buffered image as the
-        //rendering canvas. It also provides all the necessary rendering methods.
         TileRenderingContext tc = new TileRenderingContext(tile);
+        tc.initialize();
 
-        //default is to render all linestring using this line style.
-        tc.setLineStyle(Color.white, 1.0f);
-
-        //go over the records, extract its tags to check if we should render it,
-        //then extract its coordinates (and convert them to Mercator projection if needed),
-        //finally render the coordinates to the internal canvas buffer.
-        while(recordIterator.hasNext()){
-            //using MapFeatureLineString as an example here; but the iterator could
-            //return any object, as long as we can access its tags and the coordinates.
-            MapFeatureLineString lineString = (MapFeatureLineString) recordIterator.next();
-            Map<String, String> tags  = lineString.getTags();
+        tc.setLineStyle(Color.black, 1.0f);
+		
+		ImageInfo image = new ImageInfo(partition.index(), partition.getMbr());
+		image.setX(tile.getFullImageXPosition());
+		image.setY(tile.getFullImageYPosition());
+		image.setX(tile.getTileX());
+		image.setY(tile.getTileY());
+		while (records.hasNext()) {
+			WayWritable info = records.next();
+			Map<String, String> tags  = info.getTagMap();
 
             //check and filter the record based on its tags.
             if(tc.getStyleSheet().applicable(tags)){
-
-                //TODO: populate the Mercator coordinates of the feature geometry here.
-                //      For mercator projection use the WorldMercatorUtils class which can transform
-                //      a lon,lat point to meters in Mercator as required by our renderer.
-                double[] xys = new double[0];
-
-                tc.renderLineString(xys, tile.getMbrMercator());
+            	image.incrementCount();
+            	double[] xys = info.getGeom().getOrdinatesArray();
+            	if (xys != null) {
+            		WorldMercatorUtils.lonLatToMeters(xys);
+                	
+                    tc.renderLineString(xys, tile.getMbrMercator());
+            	}
+            	else {
+            		System.out.println("Ordinate array is null!");
+            	}
             }
-        }
-
-        //we are done iterating the records, now is time to generate the PNG image
-        byte[] image = tc.saveToBuffer();
+		}
+		//we are done iterating the records, now is time to generate the PNG image
+        byte[] imageBytes = tc.saveToBuffer();
+        image.setImageBytes(imageBytes);
 
         tc.destroy();
+		return image;
+	}
 
-        return image;
-    }
+	public ImageInfo aggregateImages(ImageInfo aggrImageInfo, ImageInfo tileImageInfo) {
+		// add tileImage to aggrImage
+		/*BufferedImage aggrImage = ImageFileUtil.loadImageFromBytes(aggrImageInfo.getImageBytes());
+		Graphics2D g2 = aggrImage.createGraphics();
+		BufferedImage tileImage = ImageFileUtil.loadImageFromBytes(tileImageInfo.getImageBytes());
+		g2.drawImage(tileImage, null, tileImageInfo.getX(), tileImageInfo.getY());
+		aggrImageInfo.incrementCount(tileImageInfo.getRecordCount());
+		aggrImageInfo.setImageBytes(ImageFileUtil.saveImageToBytes(aggrImage, "PNG"));
+		aggrImage.flush();
+		aggrImage = null;
+		tileImage.flush();
+		tileImage = null;*/
+		aggrImageInfo.aggregateImageInfo(tileImageInfo);
+		return aggrImageInfo;
+	}
 
+	public ImageInfo combineImages(ImageInfo aggrImageInfo1, ImageInfo aggrImageInfo2) {
+		/*BufferedImage aggrImage1 = ImageFileUtil.loadImageFromBytes(aggrImageInfo1.getImageBytes());
+		Graphics2D g2 = aggrImage1.createGraphics();
+		BufferedImage aggrImage2 = ImageFileUtil.loadImageFromBytes(aggrImageInfo2.getImageBytes());
+		g2.drawImage(aggrImage2, null, 0, 0);
+		aggrImageInfo1.incrementCount(aggrImageInfo2.getRecordCount());
+		aggrImageInfo1.setImageBytes(ImageFileUtil.saveImageToBytes(aggrImage1, "PNG"));
+		aggrImage1.flush();
+		aggrImage1 = null;
+		aggrImage2.flush();
+		aggrImage2 = null;*/
+		aggrImageInfo1.getAggregatedImages().addAll(aggrImageInfo2.getAggregatedImages());
+		return aggrImageInfo1;
+	}
 }
