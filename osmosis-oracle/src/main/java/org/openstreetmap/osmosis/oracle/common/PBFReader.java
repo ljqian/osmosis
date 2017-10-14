@@ -53,9 +53,11 @@ public class PBFReader {
                 else if (entity instanceof Way) {
                     //do something with the way
                     wayCount++;
-
+                    
                     Way way = (Way) entity;
-                    long wayId = way.getId();
+                    
+                    //OsmUser user = way.getUser();
+                    //long wayId = way.getId();
                     List<WayNode> nodes = way.getWayNodes();
                     for(WayNode wn : nodes){
                         long nid = wn.getNodeId();
