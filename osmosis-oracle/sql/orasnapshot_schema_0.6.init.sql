@@ -153,8 +153,8 @@ CREATE TABLE relations (
 CREATE TABLE relation_members (
     relation_id number(19) NOT NULL,
     member_id number(19) NOT NULL,
-    member_type char(1) NOT NULL,
-    member_role clob NOT NULL,
+    member_type varchar2(20) NOT NULL,
+    member_role varchar2(200),
     sequence_id int NOT NULL
 );
 
