@@ -17,7 +17,7 @@ public class PBFConfiguration {
 	 */
 	public PBFConfiguration(File file, EntityType ...typesToInsert) {
 		this.file = file;
-		if (typesToInsert != null) {
+		if (typesToInsert != null && typesToInsert.length > 0) {
 			this.typesToInsertList = Arrays.asList(typesToInsert);
 		}
 	}

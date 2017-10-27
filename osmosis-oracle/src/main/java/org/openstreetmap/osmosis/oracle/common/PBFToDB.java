@@ -242,7 +242,7 @@ public class PBFToDB {
 	private void insertNodes() {
 		if (nodeList.size() > 0) {
 			try {
-				LOG.fine("NODES: " + nodeCount);
+				LOG.info("NODES: " + nodeCount);
 				if (worker.beginBatchInserts(DBEntityType.Node)) {
 					//Reset counters
 					resetCommitCounters();
@@ -416,7 +416,7 @@ public class PBFToDB {
     	PBFToDB sample = new PBFToDB(null);
     	if (sample.initDBWorker()) {
     		//PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\x_1_y_4.osm.pbf"), EntityType.Bound, EntityType.Node, EntityType.Way, EntityType.Relation);
-    		PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\x_2_y_4.osm.pbf"), EntityType.Bound, EntityType.Way);
+    		PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\x_2_y_4.osm.pbf"));
     		sample.readFile(config);
     	}
     }

@@ -25,20 +25,20 @@ public class DBWorker {
     //private static final int USER_ID_NONE = -1;
     
     //append_values
-//    private final String userInsertSql = "insert /*+ append_values */ into users (id, name) values(?, ?)";
-//    private final String nodeInsertSql = "insert /*+ append_values */ into nodes (id, version, user_id, tstamp, changeset_id, point, tags) values(?, ?, ?, ?, ?, ?, ?)";
-//    private final String wayInsertSql = "insert /*+ append_values */ into ways (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
-//    private final String wayNodeInsertSql = "insert /*+ append_values */ into way_nodes (way_id, node_id, sequence_id) values(?, ?, ?)";
-//    private final String relationInsertSql = "insert /*+ append_values */ into relations (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
-//    private final String relationMemberInsertSql = "insert /*+ append_values */ into relation_members (relation_id, member_id, member_type, member_role, sequence_id) values(?, ?, ?, ?, ?)";
+    private final String userInsertSql = "insert /*+ append_values */ into users (id, name) values(?, ?)";
+    private final String nodeInsertSql = "insert /*+ append_values */ into nodes (id, version, user_id, tstamp, changeset_id, point, tags) values(?, ?, ?, ?, ?, ?, ?)";
+    private final String wayInsertSql = "insert /*+ append_values */ into ways (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
+    private final String wayNodeInsertSql = "insert /*+ append_values */ into way_nodes (way_id, node_id, sequence_id) values(?, ?, ?)";
+    private final String relationInsertSql = "insert /*+ append_values */ into relations (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
+    private final String relationMemberInsertSql = "insert /*+ append_values */ into relation_members (relation_id, member_id, member_type, member_role, sequence_id) values(?, ?, ?, ?, ?)";
     
     //append
-    private final String userInsertSql = "insert /*+ append */ into users (id, name) values(?, ?)";
-    private final String nodeInsertSql = "insert /*+ append */ into nodes (id, version, user_id, tstamp, changeset_id, point, tags) values(?, ?, ?, ?, ?, ?, ?)";
-    private final String wayInsertSql = "insert /*+ append */ into ways (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
-    private final String wayNodeInsertSql = "insert /*+ append */ into way_nodes (way_id, node_id, sequence_id) values(?, ?, ?)";
-    private final String relationInsertSql = "insert /*+ append */ into relations (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
-    private final String relationMemberInsertSql = "insert /*+ append */ into relation_members (relation_id, member_id, member_type, member_role, sequence_id) values(?, ?, ?, ?, ?)";
+//    private final String userInsertSql = "insert /*+ append */ into users (id, name) values(?, ?)";
+//    private final String nodeInsertSql = "insert /*+ append */ into nodes (id, version, user_id, tstamp, changeset_id, point, tags) values(?, ?, ?, ?, ?, ?, ?)";
+//    private final String wayInsertSql = "insert /*+ append */ into ways (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
+//    private final String wayNodeInsertSql = "insert /*+ append */ into way_nodes (way_id, node_id, sequence_id) values(?, ?, ?)";
+//    private final String relationInsertSql = "insert /*+ append */ into relations (id, version, user_id, tstamp, changeset_id, tags) values(?, ?, ?, ?, ?, ?)";
+//    private final String relationMemberInsertSql = "insert /*+ append */ into relation_members (relation_id, member_id, member_type, member_role, sequence_id) values(?, ?, ?, ?, ?)";
 
     private OracleConnection conn = null;
     private PreparedStatement pstmt=null;
@@ -86,16 +86,19 @@ public class DBWorker {
             return;
 
         conn = (OracleConnection) dataSource.getConnection();
-        conn.setAutoCommit(false);
+        conn.setAutoCommit(true);
     }
 
     private void closeConnection() throws SQLException {
-
-        pstmt.close();
-        pstmt = null;
-
-        conn.close();
-        conn = null;
+    	if (pstmt != null) {
+    		pstmt.close();
+            pstmt = null;
+    	}
+        
+    	if (conn != null) {
+    		conn.close();
+            conn = null;
+    	}
     }
     
     public boolean beginBatchInserts(DBEntityType dataType) throws SQLException {
@@ -121,8 +124,11 @@ public class DBWorker {
     public void endBatchInsert(boolean commit) throws SQLException {
     	LOG.fine("End Batch Insert");
         if(commit) {
-        	pstmt.executeBatch();
-            conn.commit();
+        	if (pstmt != null) {
+        		pstmt.executeBatch();
+        	}
+        	
+            //conn.commit();
         }
         else {
             conn.rollback();
