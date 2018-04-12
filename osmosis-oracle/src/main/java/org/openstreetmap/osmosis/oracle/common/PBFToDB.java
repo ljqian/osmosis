@@ -50,13 +50,18 @@ public class PBFToDB {
     long skippedWays = 0;
     long skippedRelations = 0;
     
+    int errorCount = 0;
+    int errorThreshold = 20;
+    
     public PBFToDB(DBWorker worker) {
     	this.worker = worker;
     }
     
     //TEST METHOD
     public boolean initDBWorker() {
-		String jdbcUrl = "jdbc:oracle:thin:@//adc01dtw.us.oracle.com:1521/orcl.us.oracle.com";
+    	//TODO: make DB configuration readable from user, or config file
+		//String jdbcUrl = "jdbc:oracle:thin:@//adc01dtw.us.oracle.com:1521/orcl.us.oracle.com";
+    	String jdbcUrl = "jdbc:oracle:thin:@//nsh00acn.us.oracle.com:1521/orcl.us.oracle.com";
 		OracleDataSource ds;
 		try {
 			ds = new OracleDataSource();
@@ -64,8 +69,8 @@ public class PBFToDB {
 			LOG.severe("Error creating DataSource.");
 			return false;
 		}
-		ds.setUser("osm");
-		ds.setPassword("oracle");
+		ds.setUser("hosted_data");
+		ds.setPassword("hosted_data");
 		ds.setURL(jdbcUrl);
 		worker = new DBWorker(ds);
 		return true;
@@ -79,40 +84,46 @@ public class PBFToDB {
 
             @Override
             public void process(EntityContainer entityContainer) {
-                Entity entity = entityContainer.getEntity();
-                EntityType type = entity.getType();
-                switch(type) {
-                case Node:
-                	if (config.isInsertable(type)) {
-                		addNode((Node)entity);
-                	}
-                	else {
-                		//LOG.finest("Skipping node.");
-                		skippedNodes++;
-                	}
-                	break;
-                case Way:
-                	if (config.isInsertable(type)) {
-                		addWay((Way)entity);
-                	}
-                	else {
-                		//LOG.finest("Skipping way.");
-                		skippedWays++;
-                	}
-                	break;
-                case Relation:
-                	if (config.isInsertable(type)) {
-                		addRelation((Relation)entity);
-                	}
-                	else {
-                		//LOG.finest("Skipping relation.");
-                		skippedRelations++;
-                	}
-                	break;
-                case Bound: //ignore Bound objects
-                	boundCount++;
-                	break;
-                }
+            	if (errorCount < errorThreshold) {
+            		Entity entity = entityContainer.getEntity();
+                    EntityType type = entity.getType();
+                    switch(type) {
+                    case Node:
+                    	if (config.isInsertable(type)) {
+                    		addNode((Node)entity);
+                    	}
+                    	else {
+                    		//LOG.finest("Skipping node.");
+                    		skippedNodes++;
+                    	}
+                    	break;
+                    case Way:
+                    	if (config.isInsertable(type)) {
+                    		addWay((Way)entity);
+                    	}
+                    	else {
+                    		//LOG.finest("Skipping way.");
+                    		skippedWays++;
+                    	}
+                    	break;
+                    case Relation:
+                    	if (config.isInsertable(type)) {
+                    		addRelation((Relation)entity);
+                    	}
+                    	else {
+                    		//LOG.finest("Skipping relation.");
+                    		skippedRelations++;
+                    	}
+                    	break;
+                    case Bound: //ignore Bound objects
+                    	boundCount++;
+                    	break;
+                    }
+            	}
+            	else {
+            		//Ignore everything
+            		Thread.currentThread().interrupt();
+            	}
             }
 
             @Override
@@ -187,7 +198,7 @@ public class PBFToDB {
         commitBatchInsert();
 
         long t2 = System.currentTimeMillis();
-        LOG.info("Time spent: "+ (t2-t1)+" ms.");
+        LOG.info("Time spent: "+ ((t2-t1)/1000)+" seconds. Errors found: " + errorCount + ".");
 
     }
     
@@ -210,7 +221,7 @@ public class PBFToDB {
 	private void insertUsers() {
 		if (userMap.size() > 0) {
 			try {
-				LOG.fine("USERS: " + userCount);
+				LOG.info("USERS: " + userCount);
 				if (worker.beginBatchInserts(DBEntityType.User)) {
 					//Reset counter
 					resetCommitCounters();
@@ -219,6 +230,7 @@ public class PBFToDB {
 				userMap.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting users! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -252,6 +264,7 @@ public class PBFToDB {
 				nodeList.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting nodes! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -276,7 +289,7 @@ public class PBFToDB {
 	private void insertWays() {
 		if (wayList.size() > 0) {
 			try {
-				LOG.fine("WAYS: " + wayCount);
+				LOG.info("WAYS: " + wayCount);
 				if (worker.beginBatchInserts(DBEntityType.Way)) {
 					//Reset counters
 					resetCommitCounters();
@@ -286,6 +299,7 @@ public class PBFToDB {
 				wayList.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting ways! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -314,7 +328,7 @@ public class PBFToDB {
 	private void insertWayNodes() {
 		if (wayNodeMap.size() > 0) {
 			try {
-				LOG.fine("WAY NODES: " + wayNodeCount);
+				LOG.info("WAY NODES: " + wayNodeCount);
 				if (worker.beginBatchInserts(DBEntityType.WayNode)) {
 					//Reset counters
 					resetCommitCounters();
@@ -324,6 +338,7 @@ public class PBFToDB {
 				wayNodeMap.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting way nodes! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -348,7 +363,7 @@ public class PBFToDB {
 	private void insertRelations() {
 		if (relationList.size() > 0) {
 			try {
-				LOG.fine("RELATIONS: " + relationCount);
+				LOG.info("RELATIONS: " + relationCount);
 				if (worker.beginBatchInserts(DBEntityType.Relation)) {
 					//Reset counters
 					resetCommitCounters();
@@ -358,6 +373,7 @@ public class PBFToDB {
 				relationList.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting relations! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -382,7 +398,7 @@ public class PBFToDB {
 	private void insertRelationMembers() {
 		if (relationMemberMap.size() > 0) {
 			try {
-				LOG.fine("RELATION MEMBERS: " + relationMemberCount);
+				LOG.info("RELATION MEMBERS: " + relationMemberCount);
 				if (worker.beginBatchInserts(DBEntityType.RelationMember)) {
 					//Reset counters
 					resetCommitCounters();
@@ -392,6 +408,7 @@ public class PBFToDB {
 				relationMemberMap.clear();
 			} catch (SQLException e) {
 				LOG.severe("Error inserting relation members! " + e.getMessage());
+				increaseError(e);
 			}
 		}
 	}
@@ -411,13 +428,40 @@ public class PBFToDB {
 		commitRelationCount = 0;
 		commitRelationMemberCount = 0;
 	}
+	
+	private void increaseError(Exception e) {
+		errorCount++;
+		if (errorCount >= errorThreshold) {
+			LOG.log(Level.SEVERE, "Application has been failing too much! ", e);
+			e.printStackTrace();
+		}
+	}
     
+	/**
+	 * PBF loading will start with provided PBF file
+	 * Dataset is currently hardcoded.
+	 * Will read input file from args[0]
+	 * @param args The input file is expected in position 0
+	 */
     public static void main(String... args) {
     	PBFToDB sample = new PBFToDB(null);
     	if (sample.initDBWorker()) {
     		//PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\x_1_y_4.osm.pbf"), EntityType.Bound, EntityType.Node, EntityType.Way, EntityType.Relation);
-    		PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\x_2_y_4.osm.pbf"));
-    		sample.readFile(config);
+    		if (args != null && args.length>0) {
+    			String fileStr = args[0];
+    			File pbfFile = new File(fileStr);
+    			if (pbfFile.exists()) {
+    				//PBFConfiguration config = new PBFConfiguration(new File("D:\\osm\\north-america-latest.osm.pbf"));
+    				PBFConfiguration config = new PBFConfiguration(pbfFile);
+            		sample.readFile(config);
+    			}
+    			else {
+    				LOG.warning("Input file does not exist!");
+    			}
+    		}
+    		else {
+    			LOG.warning("No input file found!");
+    		}
     	}
     }
 }
